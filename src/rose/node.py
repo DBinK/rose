@@ -11,10 +11,10 @@ MsgType = TypeVar("MsgType", bound=msgspec.Struct)
 class Publisher(Generic[MsgType]):
     def __init__(self, session: zenoh.Session, key_expr: str):
         self._pub = session.declare_publisher(key_expr)
-        self.encoder = msgspec.msgpack.encode
+        self._encoder = msgspec.msgpack.Encoder()
     
     def publish(self, msg: MsgType) -> None:
-        payload = self.encoder(msg)  # 底层自动完成 msgpack 高速序列化
+        payload = self._encoder.encode(msg)  # 底层自动完成 msgpack 高速序列化
         self._pub.put(payload)
 
 
@@ -29,19 +29,19 @@ class Subscriber(Generic[MsgType]):
         self._msg_class = msg_class
         self._callback = callback
         self._key_expr = key_expr
-        self.decoder = msgspec.msgpack.decode
+        self._decoder = msgspec.msgpack.Decoder(type=msg_class)
         
         if callback is not None:  # === 回调模式 ===
-          
             def _zenoh_listener(sample: zenoh.Sample) -> None:
                 try:
-                    decoded_msg = self.decoder(sample.payload.to_bytes(), type=self._msg_class)
+                    decoded_msg = self._decoder.decode(sample.payload.to_bytes(), type=self._msg_class)
                     self._callback(decoded_msg, sample.key_expr)
                 except msgspec.ValidationError as e:
                     logger.error(f"key_expr '{key_expr}' 消息解析失败: {e}")
             self._sub = session.declare_subscriber(key_expr, _zenoh_listener)
         else:  # === 阻塞接收模式：不传 callback，Subscriber 自带 recv() ===
             self._sub = session.declare_subscriber(key_expr)
+
 
     def recv(self, timeout: float | None = None) -> tuple[MsgType, str] | None:
         """阻塞接收一条消息。"""
@@ -62,8 +62,9 @@ class Subscriber(Generic[MsgType]):
             else:
                 return None
 
-        decoded = self.decoder(sample.payload.to_bytes(), type=self._msg_class)
+        decoded = self._decoder(sample.payload.to_bytes(), type=self._msg_class)
         return decoded, sample.key_expr
+
 
 class Node:
     def __init__(self, name: str):
@@ -81,7 +82,8 @@ class Node:
         callback: Callable[[MsgType, str], None] | None = None
     ) -> Subscriber[MsgType]:
         return Subscriber(self.session, key_expr, msg_class, callback)
-        
+    
+
     def spin(self) -> None:
         """保持节点运行"""
         import time

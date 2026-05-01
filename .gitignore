@@ -2,6 +2,7 @@
 .litho/
 tmp/
 digest.txt
+.gitingestignore
 
 # uv
 .python-version
