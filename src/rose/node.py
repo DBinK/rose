@@ -12,12 +12,18 @@ ReqType = TypeVar("ReqType", bound=msgspec.Struct)
 ResType = TypeVar("ResType", bound=msgspec.Struct)
 
 class Publisher(Generic[MsgType]):
-    def __init__(self, session: zenoh.Session, key_expr: str):
+    def __init__(self, session: zenoh.Session, key_expr: str, msg_class: type[MsgType]):
         self._pub = session.declare_publisher(key_expr)
+        self._msg_class = msg_class
         self._encoder = msgspec.msgpack.Encoder()
     
     def publish(self, msg: MsgType) -> None:
-        payload = self._encoder.encode(msg)  # 底层自动完成 msgpack 高速序列化
+        if not isinstance(msg, self._msg_class):
+            raise TypeError(
+                f"发布的消息类型必须是 {self._msg_class.__name__}，"
+                f"实际传入的是 {type(msg).__name__}"
+            )
+        payload = self._encoder.encode(msg)
         self._pub.put(payload)
 
 
@@ -166,7 +172,7 @@ class Node:
         logger.info(f"Node '{self.name}' 已启动")
 
     def create_publisher(self, key_expr: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
-        return Publisher(self.session, key_expr)
+        return Publisher(self.session, key_expr, msg_class)
 
     def create_subscriber(
         self, 
