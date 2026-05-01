@@ -1,3 +1,5 @@
+
+import time 
 import msgspec
 import zenoh
 from loguru import logger
@@ -7,54 +9,78 @@ from typing import TypeVar, Callable, Generic
 MsgType = TypeVar("MsgType", bound=msgspec.Struct)
 
 class Publisher(Generic[MsgType]):
-    def __init__(self, session: zenoh.Session, topic: str):
-        self._pub = session.declare_publisher(topic)
+    def __init__(self, session: zenoh.Session, key_expr: str):
+        self._pub = session.declare_publisher(key_expr)
         self.encoder = msgspec.msgpack.encode
     
     def publish(self, msg: MsgType) -> None:
         payload = self.encoder(msg)  # 底层自动完成 msgpack 高速序列化
         self._pub.put(payload)
 
+
 class Subscriber(Generic[MsgType]):
     def __init__(
         self, 
         session: zenoh.Session, 
-        topic: str, 
+        key_expr: str, 
         msg_class: type[MsgType], 
-        callback: Callable[[MsgType], None]
+        callback: Callable[[MsgType, str], None] | None = None
     ):
         self._msg_class = msg_class
         self._callback = callback
+        self._key_expr = key_expr
         self.decoder = msgspec.msgpack.decode
         
-        # 内部闭包处理 zenoh 的原生回调
-        def _zenoh_listener(sample: zenoh.Sample) -> None:
-            try:  # ZBytes → bytes 转换后再反序列化 
-                decoded_msg = self.decoder(sample.payload.to_bytes(), type=self._msg_class)
-                self._callback(decoded_msg, sample.key_expr)
-            except msgspec.ValidationError as e:
-                logger.error(f"Topic '{topic}' 消息解析失败: {e}")
+        if callback is not None:  # === 回调模式 ===
+          
+            def _zenoh_listener(sample: zenoh.Sample) -> None:
+                try:
+                    decoded_msg = self.decoder(sample.payload.to_bytes(), type=self._msg_class)
+                    self._callback(decoded_msg, sample.key_expr)
+                except msgspec.ValidationError as e:
+                    logger.error(f"key_expr '{key_expr}' 消息解析失败: {e}")
+            self._sub = session.declare_subscriber(key_expr, _zenoh_listener)
+        else:  # === 阻塞接收模式：不传 callback，Subscriber 自带 recv() ===
+            self._sub = session.declare_subscriber(key_expr)
 
-        self._sub = session.declare_subscriber(topic, _zenoh_listener)
+    def recv(self, timeout: float | None = None) -> tuple[MsgType, str] | None:
+        """阻塞接收一条消息。"""
+        if self._callback is not None:
+            raise RuntimeError("该 Subscriber 使用回调模式，不支持 recv()")
 
+        if timeout is None:
+            # 无限阻塞
+            sample = self._sub.recv()
+        else:
+            # 带超时的轮询
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                sample = self._sub.try_recv()
+                if sample is not None:
+                    break
+                time.sleep(0.001)
+            else:
+                return None
+
+        decoded = self.decoder(sample.payload.to_bytes(), type=self._msg_class)
+        return decoded, sample.key_expr
 
 class Node:
     def __init__(self, name: str):
         self.name = name
-        # 初始化通信引擎，默认自动多播发现
-        self.session = zenoh.open(zenoh.Config())
+        self.session = zenoh.open(zenoh.Config())  # 初始化通信引擎，默认自动多播发现
         logger.info(f"Node '{self.name}' 已启动")
 
-    def create_publisher(self, topic: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
-        return Publisher(self.session, topic)
+    def create_publisher(self, key_expr: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
+        return Publisher(self.session, key_expr)
 
     def create_subscriber(
         self, 
-        topic: str, 
+        key_expr: str, 
         msg_class: type[MsgType], 
-        callback: Callable[[MsgType], None]
+        callback: Callable[[MsgType, str], None] | None = None
     ) -> Subscriber[MsgType]:
-        return Subscriber(self.session, topic, msg_class, callback)
+        return Subscriber(self.session, key_expr, msg_class, callback)
         
     def spin(self) -> None:
         """保持节点运行"""
