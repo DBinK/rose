@@ -1,15 +1,18 @@
-import queue
+# node.py
+
 import time 
 import msgspec
 import zenoh
 from loguru import logger
 from typing import TypeVar, Callable, Generic
 
-# 定义泛型，约束消息类型必须是 msgspec.Struct 的子类
-MsgType = TypeVar("MsgType", bound=msgspec.Struct)
+from rose.message import Message
 
-ReqType = TypeVar("ReqType", bound=msgspec.Struct)
-ResType = TypeVar("ResType", bound=msgspec.Struct)
+# 定义泛型，约束消息类型必须是 Message 的子类
+MsgType = TypeVar("MsgType", bound=Message)   # 发布订阅消息类型
+ReqType = TypeVar("ReqType", bound=Message)   # 服务请求消息类型
+ResType = TypeVar("ResType", bound=Message)   # 服务响应消息类型
+
 
 class Publisher(Generic[MsgType]):
     def __init__(self, session: zenoh.Session, key_expr: str, msg_class: type[MsgType]):
@@ -167,10 +170,35 @@ class Client(Generic[ReqType, ResType]):
 
 class Node:
     def __init__(self, name: str):
+        """创建一个 Node，作为 Zenoh 的会话容器，管理发布、订阅、服务和客户端"""
         self.name = name
         self.session = zenoh.open(zenoh.Config())  # 初始化通信引擎，默认自动多播发现
+        self._closed = False
         logger.info(f"Node '{self.name}' 已启动")
 
+    """使用 with 语句管理 Node 的生命周期"""
+    def __enter__(self) -> "Node":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
+    def __del__(self) -> None:
+        if not self._closed:
+            self.close()
+
+    def close(self) -> None:
+        """优雅关闭节点：释放所有 Zenoh 资源"""
+        if self._closed:
+            return
+        self._closed = True
+        logger.info(f"Node '{self.name}' 正在关闭...")
+        try:
+            self.session.close()
+        except Exception:
+            pass
+
+    # === 工厂方法，创建发布者、订阅者、服务和客户端 ===
     def create_publisher(self, key_expr: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
         return Publisher(self.session, key_expr, msg_class)
 
@@ -199,9 +227,9 @@ class Node:
     ) -> Client[ReqType, ResType]:
         return Client(self.session, key_expr, req_class, res_class)
 
+    # === 运行节点 ===
     def spin(self) -> None:
         """保持节点运行"""
-        import time
         try:
             while True:
                 time.sleep(1)
