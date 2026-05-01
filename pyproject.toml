@@ -1,0 +1,26 @@
+[project]
+name = "rose"
+version = "0.1.0"
+description = "A simple ROS2-like framework based on Zenoh"
+readme = "README.md"
+authors = [
+    { name = "DBinK", email = "DBinKv1@Gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "eclipse-zenoh>=1.9.0",
+    "msgspec>=0.21.1",
+]
+
+[project.scripts]
+rose = "rose:main"
+
+[build-system]
+requires = ["uv_build>=0.9.21,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "loguru>=0.7.3",
+    "rich>=15.0.0",
+]
