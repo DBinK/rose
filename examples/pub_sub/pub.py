@@ -26,8 +26,8 @@ try:
         pub.publish(msg)
         logger.info(f"已发送 -> 温度: {msg.temperature}°C")
         
-        temp += 0.1 # 模拟温度变化
-        time.sleep(1)
+        temp += 0.001 # 模拟温度变化
+        time.sleep(0.001)
         
 except KeyboardInterrupt:
     logger.info("节点关闭")

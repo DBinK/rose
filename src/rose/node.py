@@ -1,6 +1,8 @@
 # node.py
 
 import time 
+import queue
+
 import msgspec
 import zenoh
 from loguru import logger
@@ -51,8 +53,11 @@ class Subscriber(Generic[MsgType]):
                 except msgspec.ValidationError as e:
                     logger.error(f"key_expr '{key_expr}' 消息解析失败: {e}")
             self._sub = session.declare_subscriber(key_expr, _zenoh_listener)
-        else:  # === 阻塞接收模式：不传 callback，Subscriber 自带 recv() ===
-            self._sub = session.declare_subscriber(key_expr)
+        else:  # === 阻塞接收模式 ===
+            self._queue: queue.Queue[zenoh.Sample] = queue.Queue()
+            def _internal_listener(sample: zenoh.Sample) -> None:
+                self._queue.put(sample)
+            self._sub = session.declare_subscriber(key_expr, _internal_listener)
 
 
     def recv(self, timeout: float | None = None) -> tuple[MsgType, str] | None:
@@ -60,19 +65,10 @@ class Subscriber(Generic[MsgType]):
         if self._callback is not None:
             raise RuntimeError("该 Subscriber 使用回调模式，不支持 recv()")
 
-        if timeout is None:
-            # 无限阻塞
-            sample = self._sub.recv()
-        else:
-            # 带超时的轮询
-            deadline = time.monotonic() + timeout
-            while time.monotonic() < deadline:
-                sample = self._sub.try_recv()
-                if sample is not None:
-                    break
-                time.sleep(0.001)
-            else:
-                return None
+        try:
+            sample = self._queue.get(timeout=timeout)
+        except queue.Empty:
+            return None
 
         decoded = self._decoder.decode(sample.payload.to_bytes())
         return decoded, sample.key_expr
