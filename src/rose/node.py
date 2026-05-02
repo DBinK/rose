@@ -16,23 +16,6 @@ ReqType = TypeVar("ReqType", bound=Message)   # 服务请求消息类型
 ResType = TypeVar("ResType", bound=Message)   # 服务响应消息类型
 
 
-def _pin_token(session: zenoh.Session, token: object) -> None:
-    """将活跃度 Token 锚定到 Session 上，防止 Python GC 误回收。
-
-    Publisher / Client 等对象的回调不会持有 self 引用，
-    当用户未保存返回值时对象会被 GC，导致 self._token 也被回收。
-    将 token 锚定在模块级 dict 中，确保其生命周期与 session 一致。
-    """
-    sid = id(session)
-    if sid not in _TOKEN_ANCHORS:
-        _TOKEN_ANCHORS[sid] = []
-    _TOKEN_ANCHORS[sid].append(token)
-
-
-# 模块级 dict，锚定活跃度 Token 引用以防止 GC
-_TOKEN_ANCHORS: dict[int, list[object]] = {}
-
-
 class Publisher(Generic[MsgType]):
     def __init__(
         self,
@@ -48,7 +31,6 @@ class Publisher(Generic[MsgType]):
         # 挂载活跃度 Token，格式定为：@rose/nodes/{节点名}/pub/{真实话题}
         clean_expr = key_expr.lstrip("/")
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/pub/{clean_expr}")
-        _pin_token(session, self._token)
 
     def publish(self, msg: MsgType) -> None:
         if not isinstance(msg, self._msg_class):
@@ -76,7 +58,6 @@ class Subscriber(Generic[MsgType]):
 
         clean_expr = key_expr.lstrip("/")  # 挂载活跃度 Token
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/sub/{clean_expr}")
-        _pin_token(session, self._token)
 
         if callback is not None:  # === 回调模式 ===
             def _zenoh_listener(sample: zenoh.Sample) -> None:
@@ -145,7 +126,6 @@ class Service(Generic[ReqType, ResType]):
         # 规范化路径结构
         clean_expr = key_expr.lstrip("/")
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{clean_expr}")
-        _pin_token(session, self._token)
 
 
 class Client(Generic[ReqType, ResType]):
@@ -167,7 +147,6 @@ class Client(Generic[ReqType, ResType]):
         # 规范化路径结构
         clean_expr = key_expr.lstrip("/")
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/client/{clean_expr}")
-        _pin_token(session, self._token)
 
     def wait_for_service(self, timeout: float = 1.0) -> bool:
         """等待服务端就绪"""
@@ -213,6 +192,7 @@ class Node:
         """创建一个 Node，作为 Zenoh 的会话容器，管理发布、订阅、服务和客户端"""
         self.name = name
         self.session = zenoh.open(zenoh.Config())  # 初始化通信引擎，默认自动多播发现
+        self._children: list[Publisher | Subscriber | Service | Client] = []  # 跟踪子对象，防止 GC 回收
         self._closed = False
         logger.info(f"Node '{self.name}' 已启动")
 
@@ -232,6 +212,7 @@ class Node:
         if self._closed:
             return
         self._closed = True
+        self._children.clear()
         logger.info(f"Node '{self.name}' 正在关闭...")
         try:
             self.session.close()
@@ -240,7 +221,9 @@ class Node:
 
     # === 工厂方法，创建发布者、订阅者、服务和客户端 ===
     def create_publisher(self, key_expr: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
-        return Publisher(self.session, self.name, key_expr, msg_class)
+        pub = Publisher(self.session, self.name, key_expr, msg_class)
+        self._children.append(pub)
+        return pub
 
     def create_subscriber(
         self, 
@@ -248,7 +231,9 @@ class Node:
         msg_class: type[MsgType], 
         callback: Callable[[MsgType, str], None] | None = None
     ) -> Subscriber[MsgType]:
-        return Subscriber(self.session, self.name, key_expr, msg_class, callback)
+        sub = Subscriber(self.session, self.name, key_expr, msg_class, callback)
+        self._children.append(sub)
+        return sub
         
     def create_service(
         self,
@@ -257,7 +242,9 @@ class Node:
         res_class: type[ResType],
         callback: Callable[[ReqType], ResType]
     ) -> Service[ReqType, ResType]:
-        return Service(self.session, self.name, key_expr, req_class, res_class, callback)
+        svc = Service(self.session, self.name, key_expr, req_class, res_class, callback)
+        self._children.append(svc)
+        return svc
 
     def create_client(
         self,
@@ -265,7 +252,9 @@ class Node:
         req_class: type[ReqType],
         res_class: type[ResType]
     ) -> Client[ReqType, ResType]:
-        return Client(self.session, self.name, key_expr, req_class, res_class)
+        cli = Client(self.session, self.name, key_expr, req_class, res_class)
+        self._children.append(cli)
+        return cli
 
     # === 运行节点 ===
     def spin(self) -> None:

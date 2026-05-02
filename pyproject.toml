@@ -1,6 +1,6 @@
 [project]
 name = "rose-py"
-version = "0.1.0"
+version = "0.1.1"
 description = "A simple ROS2-like framework based on Zenoh"
 readme = "README.md"
 authors = [
