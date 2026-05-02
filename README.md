@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1ab37ab0-0d6d-4beb-9d9f-e98c58f81172" style="width: 40%; height: auto;">
+  <img src="https://github.com/user-attachments/assets/69b33ff2-4cc5-4136-8f46-abde25a0bed1" style="width: 40%; height: auto;">
 </p>
 
 <p align="center">
@@ -344,8 +344,8 @@ rose/
 ## 性能基准
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d90e5f6e-891e-4718-8922-ad8e14daf035" style="width: 99%; height: auto;">
-  <a>与 ROS 2 Humble 进行对比 (仅供参考)</a>
+  <img src="https://github.com/user-attachments/assets/f098cd01-f07c-4327-9f13-0e53113c1739" style="width: 99%; height: auto;">
+  <a>与 ROS 2 Humble 的延迟进行对比 (仅供参考)</a>
 </p>
 
 详见 [BENCHMARK.md](./BENCHMARK.md)
