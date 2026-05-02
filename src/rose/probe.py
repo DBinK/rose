@@ -75,7 +75,6 @@ topic_app = typer.Typer(help="发布/订阅相关操作", no_args_is_help=True)
 service_app = typer.Typer(help="RPC 服务相关操作", no_args_is_help=True)
 
 
-
 app.add_typer(ls_app, name="ls")
 app.add_typer(node_app, name="node")
 app.add_typer(topic_app, name="topic")
