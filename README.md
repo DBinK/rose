@@ -1,6 +1,49 @@
+<p align="center">
+  <a href="https://zread.ai/DBinK/rose" target="_blank"><img src="https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff" alt="zread"/></a>
+
+  <!-- PyPI -->
+  <a href="https://pypi.org/project/rose/">
+    <img src="https://img.shields.io/pypi/v/rose?color=blue&label=PyPI&logo=pypi&logoColor=white" />
+  </a>
+
+  <!-- License -->
+  <a href="https://github.com/DBinK/rose/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/DBinK/rose?color=blue" />
+  </a>
+
+  <!-- CI -->
+  <a href="https://github.com/DBinK/rose/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/DBinK/rose/test_and_publish.yml?branch=main&logo=githubactions&logoColor=white" />
+  </a>
+
+
+  <!-- Last Commit -->
+  <a href="https://github.com/DBinK/rose/commits/main">
+    <img src="https://img.shields.io/github/last-commit/DBinK/rose" />
+  </a>
+
+  <!-- Stars -->
+  <a href="https://github.com/DBinK/rose">
+    <img src="https://img.shields.io/github/stars/DBinK/rose?style=social" />
+  </a>
+
+</p>
+
+<div align="center">
+  <!-- Keep these links. Translations will automatically update with the README. -->
+  <a href="https://www.zdoc.app/DBinK/rose?lang=en">English</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=ja">日本語</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=de">Deutsch</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=es">Español</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=fr">français</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=ko">한국어</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=pt">Português</a> | 
+  <a href="https://www.zdoc.app/DBinK/rose?lang=ru">Русский</a>
+</div>
+
 # Rose 🌹
 
-A lightweight, ROS2-like robot communication framework built on [Zenoh](https://zenoh.io/).
+一个基于 [Zenoh](https://zenoh.io/) 构建的轻量级、类似 ROS2 的机器人通信框架。
 
 ## 设计理念
 
@@ -8,10 +51,10 @@ Rose 是一个极简的发布/订阅与 RPC 通信框架，借鉴 ROS2 的节点
 
 核心特点：
 
-- **轻量** — 核心依赖仅包含 `zenoh`、`msgspec` ，无 DDS、无 ROS 生态包袱 (`typer`/`loguru`/`rich` 仅调试用途)
-- **类型安全** — 基于 `msgspec.Struct` 定义消息，自动 msgpack 序列化，编译时（IDE）和运行时双重类型校验
-- **声明式风格** — 通过 `Node` 工厂方法创建发布者/订阅者/服务/客户端，API 清晰一致
-- **自发现拓扑** — 利用 Zenoh Liveliness Token 实现节点/话题/服务的自动发现，并提供 `rose-probe` CLI 工具查看网络拓扑
+- **轻量**: 核心依赖仅包含 `zenoh`、`msgspec` ，无 DDS、无 ROS 生态包袱 (`typer`/`loguru`/`rich` 仅调试用途)
+- **类型安全**: 基于 `msgspec.Struct` 定义消息，自动 msgpack 序列化，编译时（IDE）和运行时双重类型校验
+- **声明式风格**: 通过 `Node` 工厂方法创建发布者/订阅者/服务/客户端，API 清晰一致
+- **自发现拓扑**: 利用 Zenoh Liveliness Token 实现节点/话题/服务的自动发现，并提供 `rrr` CLI 工具查看网络拓扑
 
 ## 安装
 
