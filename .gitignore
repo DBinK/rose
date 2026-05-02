@@ -4,6 +4,7 @@ tmp/
 digest.txt
 .gitingestignore
 .qoder/
+benchmark_*.json
 
 # uv
 .python-version

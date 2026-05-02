@@ -374,6 +374,61 @@ src/rose/
 - `loguru >= 0.7.3`
 - `rich >= 15.0.0`
 
+## 性能基准
+
+以下基准测试在 `Windows 24H2` + `Python 3.13` 环境下运行，基于 `pytest-benchmark` 采集。
+
+### 消息序列化（msgspec msgpack）
+
+| 测试 | 平均耗时 | 说明 |
+|------|---------|------|
+| `Vector3` 创建 | **206 ns** | 3 字段 struct |
+| `Header` 创建 | **274 ns** | 含 `time.time()` 默认值 |
+| 小消息编码 (2字段) | **356 ns** | 例如 `EnvSensorData` |
+| 小消息创建 | **457 ns** | struct 对象分配 |
+| 小消息完整往返 | **495 ns** | 编码→解码全链路 |
+| 小消息解码 | **619 ns** | 2 字段 msgpack 反序列化 |
+| 大消息编码 (14字段) | **643 ns** | 模拟多传感器数据 |
+| 中等消息编码 (组合) | **747 ns** | Pose + Vector3 嵌套 |
+| 大消息解码 | **922 ns** | 14 字段反序列化 |
+| 大消息完整往返 | **942 ns** | 编码→解码全链路 |
+| 中等消息解码 | **1,052 ns** | 组合类型反序列化 |
+
+> 消息序列化采用 `msgspec` msgpack 格式，性能接近 C 扩展级别，所有测试均达到 **百万级 OPS**。
+
+### Pub/Sub 单向延迟
+
+| 测试 | 平均耗时 | 中位数 | OPS |
+|------|---------|--------|-----|
+| 小消息单向 (50B) | **94.9 µs** | 87.5 µs | 10,538 ops/s |
+| 大消息单向 (4KB) | **129.6 µs** | 114.0 µs | 7,713 ops/s |
+
+> 单向延迟测量从 `pub.put()` 到 subscriber 回调执行之间的 `time.monotonic_ns()` 差值，包含 msgpack 编码/解码 + Zenoh TCP 传输全链路。同一进程内通过 TCP 回环连接。
+
+### RPC 调用延迟
+
+| 测试 | 平均耗时 | 中位数 | OPS |
+|------|---------|--------|-----|
+| RPC 往返调用 (Add) | **33.9 µs** | 27.0 µs | 29,458 ops/s |
+
+> RPC 测试在同一进程内通过 Zenoh TCP 回环通信，包含 序列化 → Zenoh Put → 反序列化 → 处理 → 序列化 → 响应 的完整链路。
+
+### 运行基准测试
+
+```bash
+# 安装依赖
+uv sync
+
+# 消息序列化基准（无需 Zenoh 网络）
+uv run pytest tests/benchmark_message.py --benchmark-only
+
+# Node 层基准（Pub/Sub + RPC，需要 Zenoh TCP 连接）
+uv run pytest tests/benchmark_node.py --benchmark-only
+
+# 仅运行延迟测试（跳过吞吐量等需要人工验证的项）
+uv run pytest tests/benchmark_node.py -k "latency or rpc" --benchmark-only
+```
+
 ## License
 
 MIT
