@@ -1,5 +1,5 @@
 [project]
-name = "rose"
+name = "rose-py"
 version = "0.1.0"
 description = "A simple ROS2-like framework based on Zenoh"
 readme = "README.md"
