@@ -6,7 +6,7 @@
   <a href="https://zread.ai/DBinK/rose" target="_blank"><img src="https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff" alt="zread"/></a>
 
   <!-- PyPI -->
-  <a href="https://pypi.org/project/rose/">
+  <a href="https://pypi.org/project/rose-py/">
     <img src="https://img.shields.io/pypi/v/rose?color=blue&label=PyPI&logo=pypi&logoColor=white" />
   </a>
 
@@ -47,7 +47,7 @@
 
 # Rose🌹:  Robotics On Simple Engine 
 
-> **ROS compiles. Rose runs.  ROS 还在编译，Rose 已经上线**
+> **ROS compiles. Rose runs.**  ROS 还在编译，Rose 已经上线
 
 Rose 是一个基于 [Zenoh](https://zenoh.io/) 的轻量级 发布/订阅 与 RPC 通信框架。
 它借鉴了 ROS2 的节点（Node）、话题（Topic）、服务（Service）概念，但完全运行在纯 Python 生态中 —— **不挑平台、无需编译、没有 .msg**。
@@ -82,14 +82,30 @@ pip install rose-py
 uv add rose-py
 ```
 
-## 快速入门
+## 使用文档
 
-### 发布/订阅模式
+可查阅 Zread 为本项目生成的 [文档](https://zread.ai/DBinK/rose)  <a href="https://zread.ai/DBinK/rose" target="_blank"><img src="https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff" alt="zread"/></a>
 
-**1. 定义消息**
+## 快速上手
+
+所有示例代码位于 [`examples/`](examples/) 目录，可直接运行, 此处仅展示核心代码片段。
+
+### 发布/订阅 (Pub/Sub)
+
+```bash
+# 终端 A — 传感器发布者
+uv run python examples/pub_sub/pub.py
+
+# 终端 B — 日志订阅者（回调模式）
+uv run python examples/pub_sub/sub_callback.py
+
+# 或轮询模式
+uv run python examples/pub_sub/sub_polling.py
+```
+
+**① 定义消息** — [`examples/pub_sub/msg.py`](examples/pub_sub/msg.py)
 
 ```python
-# msg.py
 from rose import Message
 
 class EnvSensorData(Message):
@@ -98,88 +114,54 @@ class EnvSensorData(Message):
     humidity: float
 ```
 
-**2. 发布者**
+> 消息继承 `msgspec.Struct`，自带 `header.timestamp`（自动时间戳）和 `header.frame_id`，子类只需添加业务字段。
+
+**② 发布者** — [`examples/pub_sub/pub.py`](examples/pub_sub/pub.py)
 
 ```python
-# pub.py
-import time
-from loguru import logger
 from rose import Node
-
 from msg import EnvSensorData
 
 node = Node("sensor_hub_1")
 pub = node.create_publisher("room_a/sensor/env", EnvSensorData)
 
-logger.success("传感器节点启动，开始广播数据...")
-
-try:
-    temp = 25.0
-    while True:
-        msg = EnvSensorData(
-            # header={"frame_id": "sensor_link_1"},  # 可选覆盖
-            temperature=temp,
-            humidity=60.5,
-        )
-        pub.publish(msg)
-        logger.info(f"已发送 -> 温度: {msg.temperature}°C")
-        temp += 0.001
-        time.sleep(0.1)
-
-except KeyboardInterrupt:
-    node.close()
+msg = EnvSensorData(temperature=25.0, humidity=60.5)
+pub.publish(msg)  # 类型不匹配自动抛 TypeError
 ```
 
-**3. 订阅者（回调模式）**
+**③ 订阅者（回调模式）** — [`examples/pub_sub/sub_callback.py`](examples/pub_sub/sub_callback.py)
 
 ```python
-# sub_callback.py
-from loguru import logger
-from rich import print as rprint
-from rose import Node
-
-from msg import EnvSensorData
-
-node = Node("data_logger")
-
 def on_sensor_data(msg: EnvSensorData, source_key: str) -> None:
-    logger.success(f"收到来自 [{source_key}] 的数据:")
-    rprint(msg)
+    print(f"收到来自 [{source_key}] 的数据:", msg)
 
 node.create_subscriber("room_a/sensor/env", EnvSensorData, on_sensor_data)
-
-logger.success("日志节点已就绪，正在监听传感器网络...")
-node.spin()
+node.spin()  # 保持节点运行
 ```
 
-**4. 订阅者（轮询模式）**
+**④ 订阅者（轮询模式）** — [`examples/pub_sub/sub_polling.py`](examples/pub_sub/sub_polling.py)
 
 ```python
-# sub_polling.py
-from loguru import logger
-from rich import print as rprint
-from rose import Node
-
-from msg import EnvSensorData
-
-node = Node("data_logger")
 sub = node.create_subscriber("room_a/sensor/env", EnvSensorData)
 
-try:
-    while True:
-        msg, key = sub.recv()
-        logger.success(f"收到 [{key}]:")
-        rprint(msg)
-except KeyboardInterrupt:
-    node.close()
+while True:
+    msg, key = sub.recv()
+    print(f"收到 [{key}]:", msg)
 ```
 
-### RPC 模式（服务/客户端）
+### RPC（服务/客户端）
 
-**1. 定义消息**
+```bash
+# 终端 A — 数学服务端
+uv run python examples/rpc/server.py
+
+# 终端 B — 客户端调用
+uv run python examples/rpc/client.py
+```
+
+**① 定义请求与响应消息** — [`examples/rpc/msg.py`](examples/rpc/msg.py)
 
 ```python
-# msg.py
 from rose import Message
 
 class AddIntsReq(Message):
@@ -188,65 +170,30 @@ class AddIntsReq(Message):
 
 class AddIntsRes(Message):
     sum: int
-
-class DivFloatsReq(Message):
-    a: float
-    b: float
-
-class DivFloatsRes(Message):
-    quotient: float
 ```
 
-**2. 服务端**
+**② 服务端** — [`examples/rpc/server.py`](examples/rpc/server.py)
 
 ```python
-# server.py
-from loguru import logger
-from rose import Node
-
-from msg import AddIntsReq, AddIntsRes, DivFloatsReq, DivFloatsRes
-
 def handle_add(req: AddIntsReq) -> AddIntsRes:
-    logger.info(f"服务端收到计算请求: {req.a} + {req.b}")
     return AddIntsRes(sum=req.a + req.b)
-
-def handle_div(req: DivFloatsReq) -> DivFloatsRes:
-    logger.info(f"服务端收到计算请求: {req.a} / {req.b}")
-    return DivFloatsRes(quotient=req.a / req.b)
 
 node = Node("math_server")
 node.create_service("math/add", AddIntsReq, AddIntsRes, handle_add)
-node.create_service("math/div", DivFloatsReq, DivFloatsRes, handle_div)
-
-logger.success("加法和除法服务已就绪，等待客户端调用...")
 node.spin()
 ```
 
-**3. 客户端**
+**③ 客户端** — [`examples/rpc/client.py`](examples/rpc/client.py)
 
 ```python
-# client.py
-from rich import print as rprint
-from rose import Node
+client = node.create_client("math/add", AddIntsReq, AddIntsRes)
 
-from msg import AddIntsReq, AddIntsRes, DivFloatsReq, DivFloatsRes
-
-node = Node("math_client")
-
-# 加法
-add_client = node.create_client("math/add", AddIntsReq, AddIntsRes)
-if not add_client.wait_for_service(timeout=3):
-    print("服务端未就绪，请稍后再试")
-    exit(1)
-
-res = add_client.call(AddIntsReq(a=10, b=20))
-rprint(res)
-
-# 除法
-div_client = node.create_client("math/div", DivFloatsReq, DivFloatsRes)
-res = div_client.call(DivFloatsReq(a=10.0, b=2.0))
-rprint(res)
+if client.wait_for_service(timeout=3):
+    res = client.call(AddIntsReq(a=10, b=20))
+    print(res)  # AddIntsRes(sum=30)
 ```
+
+> 客户端通过 Liveliness Token 自动探测服务是否就绪，超时抛出 `TimeoutError`。
 
 ## API 概览
 
@@ -363,11 +310,27 @@ rrr service info math/add
 ## 项目结构
 
 ```
-src/rose/
-├── __init__.py     # 导出 Node, Message
-├── message.py      # 消息基类 + 几何基础类型
-├── node.py         # Node + Publisher/Subscriber/Service/Client
-└── probe.py        # CLI 诊断工具
+rose/
+├── src/rose/                  # 核心库
+│   ├── __init__.py            # 导出 Node, Message
+│   ├── message.py             # 消息基类 + 几何基础类型
+│   ├── node.py                # Node + Publisher/Subscriber/Service/Client
+│   └── probe.py               # CLI 诊断工具
+├── examples/                  # 完整可运行示例
+│   ├── pub_sub/               #   发布/订阅
+│   │   ├── msg.py
+│   │   ├── pub.py
+│   │   ├── sub_callback.py
+│   │   └── sub_polling.py
+│   └── rpc/                   #   RPC 服务/客户端
+│       ├── msg.py
+│       ├── server.py
+│       └── client.py
+└── tests/                     # 测试套件
+    ├── test_message.py
+    ├── test_node.py
+    ├── test_probe.py
+    └── benchmark_*.py         # 性能基准测试
 ```
 
 ## 依赖
@@ -382,9 +345,10 @@ src/rose/
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/d90e5f6e-891e-4718-8922-ad8e14daf035" style="width: 99%; height: auto;">
+  <a>与 ROS 2 Humble 进行对比 (仅供参考)</a>
 </p>
 
-详见 [BENCHMARK.md](./BENCHMARK.md)。
+详见 [BENCHMARK.md](./BENCHMARK.md)
 
 ## License
 
