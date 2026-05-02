@@ -3,6 +3,7 @@
 tmp/
 digest.txt
 .gitingestignore
+.qoder/
 
 # uv
 .python-version
