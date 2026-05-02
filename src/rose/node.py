@@ -16,6 +16,23 @@ ReqType = TypeVar("ReqType", bound=Message)   # 服务请求消息类型
 ResType = TypeVar("ResType", bound=Message)   # 服务响应消息类型
 
 
+def _pin_token(session: zenoh.Session, token: object) -> None:
+    """将活跃度 Token 锚定到 Session 上，防止 Python GC 误回收。
+
+    Publisher / Client 等对象的回调不会持有 self 引用，
+    当用户未保存返回值时对象会被 GC，导致 self._token 也被回收。
+    将 token 锚定在模块级 dict 中，确保其生命周期与 session 一致。
+    """
+    sid = id(session)
+    if sid not in _TOKEN_ANCHORS:
+        _TOKEN_ANCHORS[sid] = []
+    _TOKEN_ANCHORS[sid].append(token)
+
+
+# 模块级 dict，锚定活跃度 Token 引用以防止 GC
+_TOKEN_ANCHORS: dict[int, list[object]] = {}
+
+
 class Publisher(Generic[MsgType]):
     def __init__(
         self,
@@ -31,6 +48,7 @@ class Publisher(Generic[MsgType]):
         # 挂载活跃度 Token，格式定为：@rose/nodes/{节点名}/pub/{真实话题}
         clean_expr = key_expr.lstrip("/")
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/pub/{clean_expr}")
+        _pin_token(session, self._token)
 
     def publish(self, msg: MsgType) -> None:
         if not isinstance(msg, self._msg_class):
@@ -58,6 +76,7 @@ class Subscriber(Generic[MsgType]):
 
         clean_expr = key_expr.lstrip("/")  # 挂载活跃度 Token
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/sub/{clean_expr}")
+        _pin_token(session, self._token)
 
         if callback is not None:  # === 回调模式 ===
             def _zenoh_listener(sample: zenoh.Sample) -> None:
@@ -109,37 +128,12 @@ class Service(Generic[ReqType, ResType]):
                 req_msg = self._decoder.decode(query.payload.to_bytes())
                 res_msg = self._callback(req_msg)
                 query.reply(query.key_expr, self._encoder.encode(res_msg))
-            except msgspec.ValidationError as e:
-                err_str = f"请求数据解析失败: {e}"
-                logger.error(f"Service '{key_expr}' {err_str}")
-                query.reply_err(err_str.encode('utf-8'))
-            except Exception as e:
-                err_str = f"业务逻辑执行异常: {e}"
-                logger.error(f"Service '{key_expr}' {err_str}")
-                query.reply_err(err_str.encode('utf-8'))
-
-        self._queryable = session.declare_queryable(key_expr, _query_handler)
-        
-        # 规范化路径结构
-        clean_expr = key_expr.lstrip("/")
-        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{clean_expr}")
-
-        def _query_handler(query: zenoh.Query) -> None:
-            try:
-                # 解析客户端发来的请求
-                req_msg = self._decoder.decode(query.payload.to_bytes())
-                
-                # 执行用户的业务逻辑，获取响应对象
-                res_msg = self._callback(req_msg)
-                
-                # 序列化响应对象并打回给客户端
-                query.reply(query.key_expr, self._encoder.encode(res_msg))
 
             except msgspec.ValidationError as e:
                 err_str = f"请求数据解析失败: {e}"
                 logger.error(f"Service '{key_expr}' {err_str}")
                 query.reply_err(err_str.encode('utf-8'))
-                
+
             except Exception as e:
                 err_str = f"业务逻辑执行异常: {e}"
                 logger.error(f"Service '{key_expr}' {err_str}")
@@ -147,7 +141,11 @@ class Service(Generic[ReqType, ResType]):
 
         # 声明一个 Queryable (即可查询的服务端点)
         self._queryable = session.declare_queryable(key_expr, _query_handler)
-        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{key_expr}")
+
+        # 规范化路径结构
+        clean_expr = key_expr.lstrip("/")
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{clean_expr}")
+        _pin_token(session, self._token)
 
 
 class Client(Generic[ReqType, ResType]):
@@ -169,6 +167,7 @@ class Client(Generic[ReqType, ResType]):
         # 规范化路径结构
         clean_expr = key_expr.lstrip("/")
         self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/client/{clean_expr}")
+        _pin_token(session, self._token)
 
     def wait_for_service(self, timeout: float = 1.0) -> bool:
         """等待服务端就绪"""
