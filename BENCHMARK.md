@@ -87,9 +87,14 @@
 | 1280×720 JPEG 传输 | **1,066 µs** | ~5000-15000 µs³ | **5-14x** 快 |
 | 1920×1080 JPEG 传输 | **3,466 µs** | ~10000-30000 µs³ | **3-9x** 快 |
 
-> ¹ Fast CDR（C++ 实现）裸序列化，纯 C 库直接内存操作。Rose 用 Python msgspec，编码慢 3-6x 在预期内。
-> ² ROS 2 C++ 节点（`rclcpp`）典型延迟范围，来源 ROS 2 官方 [performance_test](https://github.com/ros2/performance_test) 及 UW-Madison 技术报告 [TR-2023-03](https://sbel.wisc.edu/wp-content/uploads/sites/569/2023/04/TR-2023-03.pdf)。
-> ³ ROS 2 `image_transport/compressed`（C++）包含 OpenCV JPEG 编解码 + CDR 序列化 + DDS 分片。NVIDIA [ros2_benchmark](https://discourse.openrobotics.org/t/ros-2-benchmark-open-source-release/30753) 在 Jetson AGX Orin 上测 quarter HD (960×540) 全链路 ~14.5 ms，FHD 下叠加 DDS 分片，落在 10-30 ms 区间。
+> ¹ Fast CDR（C++ 实现）裸序列化，纯 C 库直接内存操作。Rose 用 Python msgspec，编码慢 3-6x 在预期内。<br>
+> ² ROS 2 C++ 节点（`rclcpp`）典型延迟范围，来源 ROS 2 官方 [performance_test](https://github.com/ros2/performance_test) 及 UW-Madison 技术报告 [TR-2023-03](https://sbel.wisc.edu/wp-content/uploads/sites/569/2023/04/TR-2023-03.pdf)。<br>
+> ³ ROS 2 `image_transport/compressed`（C++）包含 OpenCV JPEG 编解码 + CDR 序列化 + DDS 分片。NVIDIA [ros2_benchmark](https://discourse.openrobotics.org/t/ros-2-benchmark-open-source-release/30753) 在 Jetson AGX Orin 上测 quarter HD (960×540) 全链路 ~14.5 ms，FHD 下叠加 DDS 分片，落在 10-30 ms 区间。<br>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/f098cd01-f07c-4327-9f13-0e53113c1739" style="width: 99%; height: auto;">
+  <a>与 ROS 2 Humble 的延迟进行对比 (仅供参考)</a>
+</p>
 
 ### 差距来源分析
 
