@@ -33,6 +33,7 @@ module-root = "src"
 dev = [
     "pytest>=9.0.3",
     "pytest-benchmark>=5.1.0",
+    "opencv-python-headless>=4.10.0",
 ]
 
 [[tool.uv.index]]

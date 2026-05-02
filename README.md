@@ -396,45 +396,65 @@ src/rose/
 
 > 消息序列化采用 `msgspec` msgpack 格式，性能接近 C 扩展级别，所有测试均达到 **百万级 OPS**。
 
-### Pub/Sub 单向延迟
+### 节点通信
+
+#### Pub/Sub 单向延迟
 
 | 测试 | 平均耗时 | 中位数 | OPS |
 |------|---------|--------|-----|
-| 小消息单向 (50B) | **94.9 µs** | 87.5 µs | 10,538 ops/s |
-| 大消息单向 (4KB) | **129.6 µs** | 114.0 µs | 7,713 ops/s |
+| 小消息单向 (50B) | **175.8 µs** | 109.6 µs | 5,687 ops/s |
+| 大消息单向 (4KB) | **208.6 µs** | 174.0 µs | 4,794 ops/s |
 
-> 单向延迟测量从 `pub.put()` 到 subscriber 回调执行之间的 `time.monotonic_ns()` 差值，包含 msgpack 编码/解码 + Zenoh TCP 传输全链路。同一进程内通过 TCP 回环连接。
+> 单向延迟测量从 `Publisher.publish()` 到 Subscriber 回调执行之间的 `time.monotonic_ns()` 差值，覆盖 msgspec 编码/解码 + 类型校验 + Zenoh TCP 传输全链路。同一进程内通过 TCP 回环连接。
 
-### RPC 调用延迟
+#### RPC 调用延迟
 
 | 测试 | 平均耗时 | 中位数 | OPS |
 |------|---------|--------|-----|
-| RPC 往返调用 (Add) | **33.9 µs** | 27.0 µs | 29,458 ops/s |
+| RPC 往返调用 (Add) | **48.5 µs** | 46.4 µs | 20,628 ops/s |
 
 > RPC 测试在同一进程内通过 Zenoh TCP 回环通信，包含 序列化 → Zenoh Put → 反序列化 → 处理 → 序列化 → 响应 的完整链路。
+
+### 图像传输
+
+通过 OpenCV 生成随机图像，使用 Rose 的 `Publisher.publish()` / `Subscriber` 回调模式传输 `ImageFrame(Message)`，覆盖 msgspec 编码/解码 + Zenoh 传输全链路。
+
+| 测试 | 单帧大小 | 单向延迟 (平均/中位数) | 吞吐量 (img/s) |
+|------|---------|----------------------|----------------|
+| VGA JPEG (640×480) | **227.5 KB** | 231 µs / 185 µs | **10,744** |
+| HD JPEG (1280×720) | **680.4 KB** | 816 µs / 740 µs | **723** |
+| Full HD JPEG (1920×1080) | **1,533.1 KB** | 3,551 µs / 3,459 µs | **196** |
+| VGA RAW (640×480, RGB) | **900.0 KB** | — | **678** |
+
+> RAW 吞吐量显著低于 JPEG（678 vs 10,744 img/s），因为 msgspec 对 900KB `bytes` 字段的编码开销远大于 227KB。实际场景建议用 JPEG 等压缩格式传输图像。
 
 ### 与 ROS 2 对比
 
 | 维度 | Rose 🌹 | ROS 2 (Python rclpy) | 差距 |
 |------|--------|----------------------|------|
-| 消息编码 (2字段) | **356 ns** | ~1-3 µs¹ | **3-10x** 快 |
-| 消息解码 (2字段) | **619 ns** | ~1-3 µs¹ | **3-5x** 快 |
-| Pub/Sub 单向 (50B) | **94.9 µs** | ~300-2000 µs² | **5-20x** 快 |
-| Pub/Sub 单向 (4KB) | **129.6 µs** | ~500-5000 µs² | **5-40x** 快 |
-| RPC 往返调用 | **33.9 µs** | ~500-3000 µs² | **15-90x** 快 |
+| 消息编码 (2字段) | **0.36 µs** | ~1-3 µs¹ | **3-10x** 快 |
+| 消息解码 (2字段) | **0.62 µs** | ~1-3 µs¹ | **3-5x** 快 |
+| Pub/Sub 单向 (50B) | **175.8 µs** | ~300-2000 µs² | **2-11x** 快 |
+| Pub/Sub 单向 (4KB) | **208.6 µs** | ~500-5000 µs² | **2-24x** 快 |
+| RPC 往返调用 | **48.5 µs** | ~500-3000 µs² | **10-60x** 快 |
+| 图像 VGA JPEG 传输 | **231 µs** | ~4-10 ms³ | **17-43x** 快 |
+| 图像 HD JPEG 传输 | **816 µs** | ~8-20 ms³ | **10-25x** 快 |
+| 图像 FHD JPEG 传输 | **3,551 µs** | ~15-50 ms³ | **4-14x** 快 |
 
 > ¹ ROS 2 序列化基于 Fast CDR（C++ 实现），但 Python 节点经过 `rclpy` → `rcl` → DDS 多层调用栈，实际开销远高于裸 CDR。
 > ² ROS 2 Python 节点典型延迟范围，来源 [ROS 2 官方性能测试工具](https://docs.ros.org/en/iron/p/performance_test/) 及社区基准数据。
+> ³ ROS 2 `image_transport/compressed` 链路包含 OpenCV JPEG 编解码 + CDR 序列化 + DDS 分片传输。数据来源于 [NVIDIA ros2_benchmark](https://discourse.openrobotics.org/t/ros-2-benchmark-open-source-release/30753) 及社区实测。RAW 模式传输 raw bgr8 会更高（FHD 单帧 ~6MB，DDS 需拆分大量 RTPS 分片）。
 
 **差距来源分析：**
 
 - **架构差异**：ROS 2 的 DDS 栈包含服务发现、QoS 协商、心跳维持等机制，这些在 Zenoh 中原生更轻量
 - **调用层级**：`rclpy` → `rcl` → `DDS` 三层 vs **Rose** → **Zenoh** 两层，每层都有数据拷贝和上下文切换开销
 - **序列化协议**：msgpack 比 CDR 更紧凑，解码无需查 schema，msgspec 的内存布局直接映射可零拷贝访问
+- **图像分片**：DDS 将大消息拆为 64KB 的 RTPS 分片，接收端重组，大图像下加剧延迟；Zenoh 的分段传输更简洁高效
 
 **性能优化空间：**
 
-当前延迟与原生 Zenoh C API（~5-10 µs）之间还有约 **85 µs** 的差距，主要来自 Python API 绑定和对象生命周期管理的开销。如果对极致性能有需求，可通过 Cython/Rust 封装关键路径进一步缩小差距。但对大多数机器人应用（控制周期通常 1-100 ms），当前水平已经绰绰有余。
+当前延迟与原生 Zenoh C API（~5-10 µs）之间还有约 **85 µs** 的差距，主要来自 Python API 绑定和对象生命周期管理的开销。如果对极致性能有需求，可通过 Cython/Rust 封装关键路径进一步缩小差距。但对大多数机器人应用（控制周期通常 1-100 ms，视频帧间隔 16-33 ms），当前水平已经绰绰有余。
 
 ### 运行基准测试
 
@@ -447,6 +467,9 @@ uv run pytest tests/benchmark_message.py --benchmark-only
 
 # Node 层基准（Pub/Sub + RPC，需要 Zenoh TCP 连接）
 uv run pytest tests/benchmark_node.py --benchmark-only
+
+# 图像传输基准（需要 OpenCV，安装后自动可用）
+uv run pytest tests/benchmark_image.py --benchmark-only
 
 # 仅运行延迟测试（跳过吞吐量等需要人工验证的项）
 uv run pytest tests/benchmark_node.py -k "latency or rpc" --benchmark-only

@@ -1,5 +1,7 @@
 """Node 层通信性能基准测试
 
+全部使用 Rose 的 `Publisher` / `Subscriber` / `Service` / `Client` API。
+
 测试要点：
 1. Pub/Sub 单向延迟（小消息 / 大消息）
 2. RPC 调用延迟
@@ -13,7 +15,6 @@ import socket
 import time
 from collections.abc import Generator
 
-import msgspec
 import pytest
 import zenoh
 
@@ -21,7 +22,7 @@ from rose.message import Message
 from rose.node import Client, Publisher, Service, Subscriber
 
 
-# ---------- 测试消息类型 ----------
+# ---------- Rose 消息类型 ----------
 
 class SmallMsg(Message):
     __test__ = False
@@ -56,14 +57,6 @@ class TimedLargeMsg(Message):
     __test__ = False
     data: list[float]
     send_timestamp_ns: int
-
-
-# ---------- 编解码器 ----------
-
-_timed_small_encoder = msgspec.msgpack.Encoder()
-_timed_small_decoder = msgspec.msgpack.Decoder(TimedSmallMsg)
-_timed_large_encoder = msgspec.msgpack.Encoder()
-_timed_large_decoder = msgspec.msgpack.Decoder(TimedLargeMsg)
 
 
 # ---------- 辅助函数 ----------
@@ -103,80 +96,77 @@ def paired_sessions() -> Generator[tuple[zenoh.Session, zenoh.Session], None, No
 # ---------- Pub/Sub 单向延迟 ----------
 
 class TestPubSubLatency:
-    """Pub/Sub 单向延迟基准测试"""
+    """通过 Rose Publisher/Subscriber 测试 Pub/Sub 单向延迟"""
 
     def test_small_message_latency(self, benchmark, paired_sessions) -> None:
         """小消息 (50B) 单向延迟"""
         session_a, session_b = paired_sessions
-
+        node_name = "bench"
+        topic = "bench/latency/small"
         q: queue.Queue[float] = queue.Queue()
 
-        def on_small(sample: zenoh.Sample) -> None:
-            msg = _timed_small_decoder.decode(sample.payload.to_bytes())
+        def on_msg(msg: TimedSmallMsg, key: str) -> None:
             latency = (time.monotonic_ns() - msg.send_timestamp_ns) / 1000  # ns -> µs
             q.put(latency)
 
-        sub = session_b.declare_subscriber("bench/latency/small", on_small)
+        Subscriber(session_b, node_name, topic, TimedSmallMsg, on_msg)
         time.sleep(0.3)
-        pub = session_a.declare_publisher("bench/latency/small")
+        pub = Publisher(session_a, node_name, topic, TimedSmallMsg)
 
         def _send_one() -> None:
             ts = time.monotonic_ns()
-            payload = _timed_small_encoder.encode(TimedSmallMsg(payload="hello", send_timestamp_ns=ts))
-            pub.put(payload)
-
+            pub.publish(TimedSmallMsg(payload="hello", send_timestamp_ns=ts))
             try:
                 q.get(timeout=2.0)
             except queue.Empty:
                 pytest.fail("超时：未收到消息")
 
         benchmark(_send_one)
-        sub.undeclare()
 
     def test_large_message_latency(self, benchmark, paired_sessions) -> None:
         """大消息 (4KB) 单向延迟"""
         session_a, session_b = paired_sessions
-
+        node_name = "bench"
+        topic = "bench/latency/large"
         q: queue.Queue[float] = queue.Queue()
 
-        def on_large(sample: zenoh.Sample) -> None:
-            msg = _timed_large_decoder.decode(sample.payload.to_bytes())
+        def on_msg(msg: TimedLargeMsg, key: str) -> None:
             latency = (time.monotonic_ns() - msg.send_timestamp_ns) / 1000
             q.put(latency)
 
-        sub = session_b.declare_subscriber("bench/latency/large", on_large)
+        Subscriber(session_b, node_name, topic, TimedLargeMsg, on_msg)
         time.sleep(0.3)
-        pub = session_a.declare_publisher("bench/latency/large")
+        pub = Publisher(session_a, node_name, topic, TimedLargeMsg)
 
         large_data = [float(i) for i in range(512)]
 
         def _send_one() -> None:
             ts = time.monotonic_ns()
-            payload = _timed_large_encoder.encode(TimedLargeMsg(data=large_data, send_timestamp_ns=ts))
-            pub.put(payload)
-
+            pub.publish(TimedLargeMsg(data=large_data, send_timestamp_ns=ts))
             try:
                 q.get(timeout=2.0)
             except queue.Empty:
                 pytest.fail("超时：未收到消息")
 
         benchmark(_send_one)
-        sub.undeclare()
 
 
 # ---------- Publisher 吞吐量 ----------
 
 class TestPublisherThroughput:
-    """Publisher 发布吞吐量基准测试"""
+    """通过 Rose Publisher/Subscriber 测试发布吞吐量"""
 
     @pytest.mark.skip(reason="需要人工验证")
     def test_publish_small_messages(self, benchmark, paired_sessions) -> None:
         """小消息 (50B) 发布吞吐量"""
         session_a, session_b = paired_sessions
-        sub = session_b.declare_subscriber("bench/small", lambda s: None)
+        node_name = "bench"
+        topic = "bench/small"
+
+        Subscriber(session_b, node_name, topic, SmallMsg, lambda msg, key: None)
         time.sleep(0.3)
 
-        pub = Publisher(session_a, "bench", "bench/small", SmallMsg)
+        pub = Publisher(session_a, node_name, topic, SmallMsg)
         msg = SmallMsg(value="hello")
 
         def _publish_batch() -> None:
@@ -185,11 +175,9 @@ class TestPublisherThroughput:
 
         benchmark(_publish_batch)
 
-        sub.undeclare()
-
 
 class TestRpcLatency:
-    """RPC 调用延迟基准测试"""
+    """RPC 调用延迟基准测试（已使用 Rose API）"""
 
     def test_rpc_roundtrip_latency(self, benchmark, node) -> None:
         def handle_add(req: AddReq) -> AddRes:
