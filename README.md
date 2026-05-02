@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="https://github.com/user-attachments/assets/1ab37ab0-0d6d-4beb-9d9f-e98c58f81172" style="width: 40%; height: auto;">
+</p>
+
+<p align="center">
   <a href="https://zread.ai/DBinK/rose" target="_blank"><img src="https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff" alt="zread"/></a>
 
   <!-- PyPI -->
@@ -41,19 +45,29 @@
   <a href="https://www.zdoc.app/DBinK/rose?lang=ru">Русский</a>
 </div>
 
-# Rose 🌹
+# Rose🌹:  Robotics On Simple Engine 
 
-一个基于 [Zenoh](https://zenoh.io/) 构建的轻量级、类似 ROS2 的机器人通信框架。
+> **ROS compiles. Rose runs.  ROS 还在编译，Rose 已经上线**
+
+Rose 是一个基于 [Zenoh](https://zenoh.io/) 的轻量级 发布/订阅 与 RPC 通信框架。
+它借鉴了 ROS2 的节点（Node）、话题（Topic）、服务（Service）概念，但完全运行在纯 Python 生态中 —— **不挑平台、无需编译、没有 .msg**。
+
+## 为什么不用 ROS？
+
+| 痛点 | ROS | Rose ✅ |
+|------|-----|---------|
+| **安装** | 挑系统和版本，依赖复杂，安装一次半小时 | `pip install rose-py`，一行秒装 |
+| **开发体验** | C++ 改代码等编译，Python 节点 LSP 基本残废 | 纯 Python，改完即跑，IDE 完整类型提示 |
+| **消息定义** | 手写 `.msg` 文件，无类型提示，还要额外生成代码 | 原生 Python 类，自动补全 + 静态类型检查 |
+| **通信引擎** | 依赖 DDS 栈，部署臃肿，配置繁琐 | 基于 Zenoh，零额外运行时，开箱即用 |
 
 ## 设计理念
 
-Rose 是一个极简的发布/订阅与 RPC 通信框架，借鉴 ROS2 的节点（Node）、话题（Topic）、服务（Service）概念，但底层通信完全基于 **Zenoh**，不依赖 DDS 栈。
+Rose 提供一种**开箱即用的分布式通信体验**——
 
-核心特点：
-
-- **轻量**: 核心依赖仅包含 `zenoh`、`msgspec` ，无 DDS、无 ROS 生态包袱 (`typer`/`loguru`/`rich` 仅调试用途)
-- **类型安全**: 基于 `msgspec.Struct` 定义消息，自动 msgpack 序列化，编译时（IDE）和运行时双重类型校验
-- **声明式风格**: 通过 `Node` 工厂方法创建发布者/订阅者/服务/客户端，API 清晰一致
+- **轻量核心**: 核心依赖仅 `zenoh` + `msgspec`，无 DDS、无 ROS 生态包袱
+- **类型安全**: 基于 `msgspec.Struct` 定义消息，自动 msgpack 序列化，IDE 和运行时双重类型校验
+- **声明式 API**: 通过 `Node` 工厂方法创建发布者/订阅者/服务/客户端，API 清晰一致
 - **自发现拓扑**: 利用 Zenoh Liveliness Token 实现节点/话题/服务的自动发现，并提供 `rrr` CLI 工具查看网络拓扑
 
 ## 安装
@@ -77,7 +91,6 @@ uv add rose-py
 ```python
 # msg.py
 from rose import Message
-
 
 class EnvSensorData(Message):
     """环境传感器数据"""
@@ -129,11 +142,9 @@ from msg import EnvSensorData
 
 node = Node("data_logger")
 
-
 def on_sensor_data(msg: EnvSensorData, source_key: str) -> None:
     logger.success(f"收到来自 [{source_key}] 的数据:")
     rprint(msg)
-
 
 node.create_subscriber("room_a/sensor/env", EnvSensorData, on_sensor_data)
 
@@ -171,20 +182,16 @@ except KeyboardInterrupt:
 # msg.py
 from rose import Message
 
-
 class AddIntsReq(Message):
     a: int
     b: int
 
-
 class AddIntsRes(Message):
     sum: int
-
 
 class DivFloatsReq(Message):
     a: float
     b: float
-
 
 class DivFloatsRes(Message):
     quotient: float
@@ -199,16 +206,13 @@ from rose import Node
 
 from msg import AddIntsReq, AddIntsRes, DivFloatsReq, DivFloatsRes
 
-
 def handle_add(req: AddIntsReq) -> AddIntsRes:
     logger.info(f"服务端收到计算请求: {req.a} + {req.b}")
     return AddIntsRes(sum=req.a + req.b)
 
-
 def handle_div(req: DivFloatsReq) -> DivFloatsRes:
     logger.info(f"服务端收到计算请求: {req.a} / {req.b}")
     return DivFloatsRes(quotient=req.a / req.b)
-
 
 node = Node("math_server")
 node.create_service("math/add", AddIntsReq, AddIntsRes, handle_add)
@@ -375,6 +379,10 @@ src/rose/
 - `rich >= 15.0.0`
 
 ## 性能基准
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d90e5f6e-891e-4718-8922-ad8e14daf035" style="width: 99%; height: auto;">
+</p>
 
 详见 [BENCHMARK.md](./BENCHMARK.md)。
 

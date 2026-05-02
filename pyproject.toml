@@ -1,7 +1,7 @@
 [project]
 name = "rose-py"
 version = "0.1.2"
-description = "A simple ROS2-like framework based on Zenoh"
+description = "A lightweight ROS2-like framework based on Zenoh — no compilation, no DDS, no master node"
 readme = "README.md"
 authors = [
     { name = "DBinK", email = "DBinKv1@Gmail.com" }
