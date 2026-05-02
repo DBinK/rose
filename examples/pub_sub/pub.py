@@ -27,7 +27,7 @@ try:
         logger.info(f"已发送 -> 温度: {msg.temperature}°C")
         
         temp += 0.001 # 模拟温度变化
-        time.sleep(0.001)
+        time.sleep(0.1)
         
 except KeyboardInterrupt:
     node.close()

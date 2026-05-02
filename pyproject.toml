@@ -10,6 +10,7 @@ requires-python = ">=3.10"
 dependencies = [
     "eclipse-zenoh>=1.9.0",
     "msgspec>=0.21.1",
+    "typer>=0.25.1",
 ]
 
 [project.scripts]

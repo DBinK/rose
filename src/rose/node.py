@@ -17,11 +17,21 @@ ResType = TypeVar("ResType", bound=Message)   # 服务响应消息类型
 
 
 class Publisher(Generic[MsgType]):
-    def __init__(self, session: zenoh.Session, key_expr: str, msg_class: type[MsgType]):
+    def __init__(
+        self,
+        session: zenoh.Session,
+        node_name: str,
+        key_expr: str,
+        msg_class: type[MsgType],
+    ):
         self._pub = session.declare_publisher(key_expr)
         self._msg_class = msg_class
         self._encoder = msgspec.msgpack.Encoder()
-    
+        
+        # 挂载活跃度 Token，格式定为：@rose/nodes/{节点名}/pub/{真实话题}
+        clean_expr = key_expr.lstrip("/")
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/pub/{clean_expr}")
+
     def publish(self, msg: MsgType) -> None:
         if not isinstance(msg, self._msg_class):
             raise TypeError(
@@ -36,6 +46,7 @@ class Subscriber(Generic[MsgType]):
     def __init__(
         self, 
         session: zenoh.Session, 
+        node_name: str,
         key_expr: str, 
         msg_class: type[MsgType], 
         callback: Callable[[MsgType, str], None] | None = None
@@ -44,7 +55,10 @@ class Subscriber(Generic[MsgType]):
         self._callback = callback
         self._key_expr = key_expr
         self._decoder = msgspec.msgpack.Decoder(type=self._msg_class)
-        
+
+        clean_expr = key_expr.lstrip("/")  # 挂载活跃度 Token
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/sub/{clean_expr}")
+
         if callback is not None:  # === 回调模式 ===
             def _zenoh_listener(sample: zenoh.Sample) -> None:
                 try:
@@ -78,6 +92,7 @@ class Service(Generic[ReqType, ResType]):
     def __init__(
         self,
         session: zenoh.Session,
+        node_name: str, 
         key_expr: str,
         req_class: type[ReqType],
         res_class: type[ResType],
@@ -86,9 +101,28 @@ class Service(Generic[ReqType, ResType]):
         self._req_class = req_class
         self._res_class = res_class
         self._callback = callback
-        
         self._decoder = msgspec.msgpack.Decoder(type=req_class)
         self._encoder = msgspec.msgpack.Encoder()
+
+        def _query_handler(query: zenoh.Query) -> None:
+            try:
+                req_msg = self._decoder.decode(query.payload.to_bytes())
+                res_msg = self._callback(req_msg)
+                query.reply(query.key_expr, self._encoder.encode(res_msg))
+            except msgspec.ValidationError as e:
+                err_str = f"请求数据解析失败: {e}"
+                logger.error(f"Service '{key_expr}' {err_str}")
+                query.reply_err(err_str.encode('utf-8'))
+            except Exception as e:
+                err_str = f"业务逻辑执行异常: {e}"
+                logger.error(f"Service '{key_expr}' {err_str}")
+                query.reply_err(err_str.encode('utf-8'))
+
+        self._queryable = session.declare_queryable(key_expr, _query_handler)
+        
+        # 规范化路径结构
+        clean_expr = key_expr.lstrip("/")
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{clean_expr}")
 
         def _query_handler(query: zenoh.Query) -> None:
             try:
@@ -113,27 +147,38 @@ class Service(Generic[ReqType, ResType]):
 
         # 声明一个 Queryable (即可查询的服务端点)
         self._queryable = session.declare_queryable(key_expr, _query_handler)
-        self._liveliness_token = session.liveliness().declare_token(key_expr)
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/server/{key_expr}")
 
 
 class Client(Generic[ReqType, ResType]):
     def __init__(
         self,
         session: zenoh.Session,
+        node_name: str, 
         key_expr: str,
         req_class: type[ReqType],
         res_class: type[ResType]
     ):
         self._key_expr = key_expr
         self.session = session
+        self._req_class = req_class
+        self._res_class = res_class
         self._encoder = msgspec.msgpack.Encoder()
         self._decoder = msgspec.msgpack.Decoder(type=res_class)
+
+        # 规范化路径结构
+        clean_expr = key_expr.lstrip("/")
+        self._token = session.liveliness().declare_token(f"@rose/nodes/{node_name}/client/{clean_expr}")
 
     def wait_for_service(self, timeout: float = 1.0) -> bool:
         """等待服务端就绪"""
         start_time = time.monotonic()
+        clean_expr = self._key_expr.lstrip("/")
+      
+        query_expr = f"@rose/nodes/**/server/{clean_expr}"  # 使用通配符匹配任意提供该服务的 Node
+        
         while time.monotonic() - start_time < timeout:
-            replies = self.session.liveliness().get(self._key_expr)
+            replies = self.session.liveliness().get(query_expr)
             for _ in replies:
                 logger.success(f"服务 '{self._key_expr}' 已就绪！")
                 return True
@@ -196,7 +241,7 @@ class Node:
 
     # === 工厂方法，创建发布者、订阅者、服务和客户端 ===
     def create_publisher(self, key_expr: str, msg_class: type[MsgType]) -> Publisher[MsgType]:
-        return Publisher(self.session, key_expr, msg_class)
+        return Publisher(self.session, self.name, key_expr, msg_class)
 
     def create_subscriber(
         self, 
@@ -204,7 +249,7 @@ class Node:
         msg_class: type[MsgType], 
         callback: Callable[[MsgType, str], None] | None = None
     ) -> Subscriber[MsgType]:
-        return Subscriber(self.session, key_expr, msg_class, callback)
+        return Subscriber(self.session, self.name, key_expr, msg_class, callback)
         
     def create_service(
         self,
@@ -213,7 +258,7 @@ class Node:
         res_class: type[ResType],
         callback: Callable[[ReqType], ResType]
     ) -> Service[ReqType, ResType]:
-        return Service(self.session, key_expr, req_class, res_class, callback)
+        return Service(self.session, self.name, key_expr, req_class, res_class, callback)
 
     def create_client(
         self,
@@ -221,7 +266,7 @@ class Node:
         req_class: type[ReqType],
         res_class: type[ResType]
     ) -> Client[ReqType, ResType]:
-        return Client(self.session, key_expr, req_class, res_class)
+        return Client(self.session, self.name, key_expr, req_class, res_class)
 
     # === 运行节点 ===
     def spin(self) -> None:
