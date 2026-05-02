@@ -218,7 +218,7 @@ wheels = [
 ]
 
 [[package]]
-name = "rose"
+name = "rose-py"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -227,11 +227,6 @@ dependencies = [
     { name = "msgspec" },
     { name = "rich" },
     { name = "typer" },
-]
-
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
 ]
 
 [package.dev-dependencies]
@@ -244,11 +239,9 @@ requires-dist = [
     { name = "eclipse-zenoh", specifier = ">=1.9.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "msgspec", specifier = ">=0.21.1" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "typer", specifier = ">=0.25.1" },
 ]
-provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.0.3" }]
