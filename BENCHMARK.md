@@ -93,7 +93,7 @@
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/f098cd01-f07c-4327-9f13-0e53113c1739" style="width: 99%; height: auto;">
-  <a>与 ROS 2 Humble 的延迟进行对比 (仅供参考)</a>
+  <a>与 ROS 2 Humble 的延迟进行对比 (单位:µs) (仅供参考)</a>
 </p>
 
 ### 差距来源分析
