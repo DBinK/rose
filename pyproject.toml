@@ -15,9 +15,6 @@ dependencies = [
     "rich>=15.0.0",
 ]
 
-[project.optional-dependencies]
-test = ["pytest>=8.0"]
-
 [project.scripts]
 rrr = "rose.probe:app"
 
@@ -33,3 +30,7 @@ dev = [
     "pytest>=9.0.3",
 ]
 
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+# url = "https://pypi.tuna.tsinghua.edu.cn/simple"  # 清华源
+default = true
