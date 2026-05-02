@@ -1,0 +1,55 @@
+name: Test and Publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*' # 打标签时触发完整流程
+  pull_request:
+    branches:
+      - main # 提 PR 时自动跑测试
+
+jobs:
+  test:
+    name: Run Tests on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv + Python
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Run tests
+        run: uv run --frozen pytest tests/
+
+  build-n-publish:
+    name: Build and publish to PyPI
+    needs: test # 核心卡点：必须等 test 跑完且全绿，才能执行发布
+    if: startsWith(github.ref, 'refs/tags/v') # 仅在推送 v 开头的 tag 时才执行发布
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi 
+      url: https://pypi.org/p/rose-py   # 记得修改包地址
+    permissions:
+      id-token: write
+      contents: read # 检出代码需要的权限
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

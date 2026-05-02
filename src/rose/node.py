@@ -1,12 +1,12 @@
 # node.py
 
-import time 
 import queue
+import time
+from typing import Callable, Generic, TypeVar
 
 import msgspec
 import zenoh
 from loguru import logger
-from typing import TypeVar, Callable, Generic
 
 from rose.message import Message
 

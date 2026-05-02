@@ -1,6 +1,7 @@
 from rose.probe import get_topology
 from rich import print as rprint
 
+# 获取当前运行状况数据
 topology = get_topology()
 
 rprint(topology)
