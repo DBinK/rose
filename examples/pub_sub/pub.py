@@ -30,4 +30,5 @@ try:
         time.sleep(0.001)
         
 except KeyboardInterrupt:
+    node.close()
     logger.info("节点关闭")
