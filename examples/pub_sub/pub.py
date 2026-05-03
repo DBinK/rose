@@ -1,6 +1,6 @@
 import time
 from loguru import logger
-from rose import Node
+from rose import Node, Header
 
 from msg import EnvSensorData
 
@@ -17,7 +17,7 @@ try:
     while True:
         # 3. 实例化消息 (Header 的时间戳会自动生成)
         msg = EnvSensorData(
-            header={"frame_id": "sensor_link_1"}, # 可选覆盖，不写则为空
+            header=Header.from_dict({"frame_id": "sensor_link_1"}), # 可选覆盖，不写则为空
             temperature=temp,
             humidity=60.5
         )

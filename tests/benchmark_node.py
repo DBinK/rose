@@ -19,7 +19,7 @@ import pytest
 import zenoh
 
 from rose.message import Message
-from rose.node import Client, Publisher, Service, Subscriber
+from rose.node import Publisher, Subscriber
 
 
 # ---------- Rose 消息类型 ----------

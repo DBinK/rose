@@ -9,7 +9,7 @@ import time
 import pytest
 import zenoh
 
-from rose.node import Client, Publisher, Service, Subscriber
+from rose import Node
 from rose.probe import TopologyData, get_topology
 from tests.test_node import AddReq, AddRes, TestMsg
 
@@ -44,85 +44,75 @@ class TestGetTopology:
 
     def test_detect_publisher(self) -> None:
         """同 Session 内探测发布者"""
-        session = _make_session()
+        with Node("sensor_node") as node:
+            _ = node.create_publisher("room/temp", TestMsg)
+            time.sleep(0.5)
 
-        pub = Publisher(session, "sensor_node", "room/temp", TestMsg)
-        time.sleep(0.5)
-
-        try:
-            topo = get_topology(session=session, discovery_wait=0.3)
+            topo = get_topology(session=node.session, discovery_wait=0.3)
 
             assert "sensor_node" in topo.nodes
             assert "room/temp" in topo.nodes["sensor_node"]["pub"]
             assert "room/temp" in topo.topics
             assert "sensor_node" in topo.topics["room/temp"]["pub_nodes"]
-        finally:
-            _safe_close(session)
 
     def test_detect_subscriber(self) -> None:
         """同 Session 内探测订阅者"""
-        session = _make_session()
+        with Node("logger_node") as node:
+            # 创建订阅者以注册到拓扑中
+            node.create_subscriber("room/temp", TestMsg, lambda m, k: None)
+            time.sleep(0.5)
 
-        Subscriber(session, "logger_node", "room/temp", TestMsg, lambda m, k: None)
-        time.sleep(0.5)
-
-        try:
-            topo = get_topology(session=session, discovery_wait=0.3)
+            topo = get_topology(session=node.session, discovery_wait=0.3)
 
             assert "logger_node" in topo.nodes
             assert "room/temp" in topo.nodes["logger_node"]["sub"]
             assert "room/temp" in topo.topics
             assert "logger_node" in topo.topics["room/temp"]["sub_nodes"]
-        finally:
-            _safe_close(session)
 
     def test_detect_service(self) -> None:
         """同 Session 内探测 RPC 服务"""
-        session = _make_session()
+        with Node("math_node") as node:
+            # 创建服务以注册到拓扑中
+            node.create_service("calc/add", AddReq, AddRes, lambda req: AddRes(sum=req.a + req.b))
+            time.sleep(0.5)
 
-        Service(session, "math_node", "calc/add", AddReq, AddRes, lambda req: AddRes(sum=req.a + req.b))
-        time.sleep(0.5)
-
-        try:
-            topo = get_topology(session=session, discovery_wait=0.3)
+            topo = get_topology(session=node.session, discovery_wait=0.3)
 
             assert "math_node" in topo.nodes
             assert "calc/add" in topo.nodes["math_node"]["server"]
             assert "calc/add" in topo.services
             assert "math_node" in topo.services["calc/add"]["server_nodes"]
-        finally:
-            _safe_close(session)
 
     def test_detect_client(self) -> None:
         """同 Session 内探测客户端"""
-        session = _make_session()
+        with Node("app_node") as node:
+            # 创建客户端以注册到拓扑中
+            node.create_client("calc/add", AddReq, AddRes)
+            time.sleep(0.5)
 
-        cli = Client(session, "app_node", "calc/add", AddReq, AddRes)
-        time.sleep(0.5)
-
-        try:
-            topo = get_topology(session=session, discovery_wait=0.3)
+            topo = get_topology(session=node.session, discovery_wait=0.3)
 
             assert "app_node" in topo.nodes
             assert "calc/add" in topo.nodes["app_node"]["client"]
             assert "calc/add" in topo.services
             assert "app_node" in topo.services["calc/add"]["client_nodes"]
-        finally:
-            _safe_close(session)
 
     def test_mixed_topology(self) -> None:
-        """混合场景：同一个 Session 上多个节点/话题/服务"""
-        session = _make_session()
+        """混合场景：多个节点/话题/服务"""
+        with Node("sensor_1") as sensor_node, \
+             Node("logger_1") as logger_node, \
+             Node("calc_1") as calc_node, \
+             Node("app_1") as app_node:
+            
+            # 创建组件以注册到拓扑中
+            sensor_node.create_publisher("room/temp", TestMsg)
+            sensor_node.create_publisher("room/humidity", TestMsg)
+            logger_node.create_subscriber("room/temp", TestMsg, lambda m, k: None)
+            calc_node.create_service("math/add", AddReq, AddRes, lambda req: AddRes(sum=req.a + req.b))
+            app_node.create_client("math/add", AddReq, AddRes)
+            time.sleep(0.5)
 
-        pub1 = Publisher(session, "sensor_1", "room/temp", TestMsg)
-        pub2 = Publisher(session, "sensor_1", "room/humidity", TestMsg)
-        sub = Subscriber(session, "logger_1", "room/temp", TestMsg, lambda m, k: None)
-        svc = Service(session, "calc_1", "math/add", AddReq, AddRes, lambda req: AddRes(sum=req.a + req.b))
-        cli = Client(session, "app_1", "math/add", AddReq, AddRes)
-        time.sleep(0.5)
-
-        try:
-            topo = get_topology(session=session, discovery_wait=0.3)
+            topo = get_topology(session=sensor_node.session, discovery_wait=0.3)
 
             # 验证所有节点
             assert "sensor_1" in topo.nodes
@@ -148,8 +138,6 @@ class TestGetTopology:
             assert "math/add" in topo.services
             assert "calc_1" in topo.services["math/add"]["server_nodes"]
             assert "app_1" in topo.services["math/add"]["client_nodes"]
-        finally:
-            _safe_close(session)
 
     def test_auto_session_returns_structure(self) -> None:
         """不传 session 时，返回 TopologyData 结构"""

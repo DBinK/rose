@@ -10,8 +10,8 @@ sub = node.create_subscriber("room_a/sensor/env", EnvSensorData)
 
 try:
     while True:
-        msg, key = sub.recv()
-        logger.success(f"收到 [{key}]:")
+        msg = sub.recv()
+        logger.success(f"收到 [{sub.key_expr}]:")
         rprint(msg)
 
 except Exception as e:

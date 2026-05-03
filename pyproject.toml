@@ -1,6 +1,6 @@
 [project]
 name = "rose-py"
-version = "0.1.4"
+version = "0.1.5"
 description = "A lightweight ROS2-like framework based on Zenoh — no Ubuntu lock-in, no compilation needed, no .msg files.  一个类似 ROS 的基于 Zenoh 的轻量级 发布/订阅 与 RPC 通信框架, 不挑平台、无需编译、没有 .msg"
 readme = "README.md"
 authors = [
@@ -40,3 +40,6 @@ dev = [
 url = "https://pypi.org/simple"
 # url = "https://pypi.tuna.tsinghua.edu.cn/simple"  # 清华源
 default = true
+
+[tool.pyrefly]
+python-path = ".venv/Scripts/python.exe"

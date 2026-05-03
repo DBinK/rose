@@ -157,9 +157,8 @@ class TestSubscriber:
         pub.put(payload)
         time.sleep(0.5)
 
-        result = sub.recv(timeout=2.0)
-        assert result is not None
-        msg, key = result
+        msg = sub.recv(timeout=2.0)
+        assert msg is not None
         assert msg.value == "poll_works"
 
         _safe_close(session_b, session_a)
@@ -176,8 +175,8 @@ class TestSubscriber:
         """轮询超时应返回 None"""
         session_a, session_b = _paired_sessions()
         sub = Subscriber(session_b, "test_node", "test/sub/timeout", TestMsg)
-        result = sub.recv(timeout=0.3)
-        assert result is None
+        msg = sub.recv(timeout=0.3)
+        assert msg is None
         _safe_close(session_b, session_a)
 
 

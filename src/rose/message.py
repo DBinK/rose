@@ -6,8 +6,12 @@ class Header(msgspec.Struct):
     timestamp: float = msgspec.field(default_factory=time.time)  # 自动填入当前时间戳
     frame_id: str = ""  # 坐标系 ID，做 TF 变换和传感器融合时必备 (如 "base_link", "camera_rgb_optical_frame")
 
+    @classmethod
+    def from_dict(cls, header: dict) -> "Header":
+        return cls(**header)
+
 # 消息基类 (所有业务消息的父类)
-class Message(msgspec.Struct, kw_only=True):  # kw_only=True，解决继承时带默认值的字段顺序冲突问题
+class Message(msgspec.Struct, kw_only=True):  # kw_only True，解决继承时带默认值的字段顺序冲突问题
     header: Header = msgspec.field(default_factory=Header)  # 强制所有子类消息自带 header
 
 

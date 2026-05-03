@@ -1,10 +1,14 @@
 # Project-specific gitignore
-.litho/
 tmp/
+benchmark_*.json
+.benchmarks/
+
 digest.txt
 .gitingestignore
+
 .qoder/
-benchmark_*.json
+.kilo/
+.litho/
 
 # uv
 .python-version
